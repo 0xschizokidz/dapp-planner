@@ -1,0 +1,34 @@
+version: '3.8'
+services:
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      - OLLAMA_MODEL=phi
+      - NEXT_PUBLIC_API_URL=http://localhost:11434
+      - NODE_ENV=development
+    restart: unless-stopped
+
+volumes:
+  ollama-data:
