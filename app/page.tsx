@@ -348,25 +348,37 @@ With proper execution and favorable market conditions, this project has signific
   const generate = async () => {
     setLoading(true)
     try {
-      const config: Config = {
-        dappType: dappType as DappType,
+      const requestBody = {
+        dappType,
         chain,
         model,
         targetAudience,
         budget,
         timeline,
-        team
+        teamSize: team,
+        complexity: 'full' // Use full complexity for comprehensive analysis
       }
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestBody),
+      })
 
-      const enhancedOutput = generateEnhancedPlan(config)
-      setOutput(enhancedOutput)
-      showNotification('Strategic plan generated successfully!')
-    } catch (err) {
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      setOutput(data.output)
+      showNotification('AI-powered strategic plan generated successfully!')
+    } catch (err: any) {
       console.error('Generation failed:', err)
-      showNotification('Generation failed. Please try again.')
+      setOutput(`Error: ${err.message}\n\nPlease check your environment variables and try again.`)
+      showNotification('Generation failed. Please check console for details.')
     } finally {
       setLoading(false)
     }
@@ -396,23 +408,55 @@ With proper execution and favorable market conditions, this project has signific
   }
 
   const handleAIPrompt = async () => {
-    setLoading(true);
-    // Example: Call your backend API to parse the prompt
-    const res = await fetch("/api/parse-prompt", {
-      method: "POST",
-      body: JSON.stringify({ prompt: aiPrompt }),
-    });
-    const parsed = await res.json();
-    if (parsed) {
-      setDappType(parsed.dappType || dappType);
-      setChain(parsed.chain || chain);
-      setModel(parsed.model || model);
-      setTargetAudience(parsed.targetAudience || targetAudience);
-      setBudget(parsed.budget || budget);
-      setTimeline(parsed.timeline || timeline);
-      setTeam(parsed.team || team);
+    if (!aiPrompt.trim()) {
+      showNotification('Please enter a prompt first!');
+      return;
     }
-    setLoading(false);
+    
+    setLoading(true);
+    try {
+      // For now, we'll use a simple approach to parse the prompt
+      // In the future, this could be enhanced with a dedicated AI parsing endpoint
+      const prompt = aiPrompt.toLowerCase();
+      
+      // Simple keyword-based parsing
+      if (prompt.includes('dex') || prompt.includes('exchange')) {
+        setDappType('DEX');
+      } else if (prompt.includes('nft') || prompt.includes('marketplace')) {
+        setDappType('NFT Marketplace');
+      } else if (prompt.includes('dao') || prompt.includes('governance')) {
+        setDappType('DAO');
+      } else if (prompt.includes('game') || prompt.includes('gaming')) {
+        setDappType('Gaming DApp');
+      } else if (prompt.includes('defi') || prompt.includes('lending') || prompt.includes('yield')) {
+        setDappType('DeFi Protocol');
+      }
+      
+      if (prompt.includes('ethereum')) {
+        setChain('Ethereum');
+      } else if (prompt.includes('polygon')) {
+        setChain('Polygon');
+      } else if (prompt.includes('solana')) {
+        setChain('Solana');
+      } else if (prompt.includes('arbitrum')) {
+        setChain('Arbitrum');
+      }
+      
+      if (prompt.includes('b2b') || prompt.includes('business')) {
+        setModel('B2B');
+      } else if (prompt.includes('p2p') || prompt.includes('peer')) {
+        setModel('P2P');
+      } else if (prompt.includes('community')) {
+        setModel('Community');
+      }
+      
+      showNotification('Form filled based on your prompt!');
+    } catch (err) {
+      console.error('AI prompt parsing failed:', err);
+      showNotification('Failed to parse prompt. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
