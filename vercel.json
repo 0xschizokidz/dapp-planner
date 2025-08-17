@@ -4,9 +4,7 @@
   "framework": "nextjs",
   "installCommand": "npm install",
   "devCommand": "npm run dev",
-  "env": {
-    "OLLAMA_MODEL": "@OLLAMA_MODEL"
-  },
+
   "functions": {
     "app/api/generate/route.ts": {
       "maxDuration": 30
