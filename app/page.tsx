@@ -345,39 +345,24 @@ This comprehensive plan provides a roadmap for building a successful ${config.da
 With proper execution and favorable market conditions, this project has significant potential for success in the Web3 ecosystem.`
   }
 
-  const generate = async () => {
+  const generate = () => {
     setLoading(true)
     try {
-      const requestBody = {
-        dappType,
+      const config = {
+        dappType: dappType as DappType,
         chain,
         model,
         targetAudience,
         budget,
         timeline,
-        teamSize: team,
-        complexity: 'full' // Use full complexity for comprehensive analysis
+        team,
       }
-
-      const response = await fetch('/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-      setOutput(data.output)
-      showNotification('AI-powered strategic plan generated successfully!')
+      const plan = generateEnhancedPlan(config)
+      setOutput(plan)
+      showNotification('Strategic plan generated successfully!')
     } catch (err: any) {
       console.error('Generation failed:', err)
-      setOutput(`Error: ${err.message}\n\nPlease check your environment variables and try again.`)
+      setOutput(`Error: ${err.message}`)
       showNotification('Generation failed. Please check console for details.')
     } finally {
       setLoading(false)
